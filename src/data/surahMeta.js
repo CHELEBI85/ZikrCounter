@@ -121,3 +121,19 @@ export const SURAH_META = [
 export const TOTAL_SURAHS = 114;
 
 export const getSurahMeta = (n) => SURAH_META.find((s) => s.number === Number(n)) || null;
+
+/**
+ * Localized display name for a surah.
+ * @param {object|null} meta
+ * @param {string} [language] "tr" | "en" | "ar"
+ */
+export const getLocalizedSurahName = (meta, language = "tr") => {
+  if (!meta) return "";
+  if (language === "en") return meta.englishName || meta.turkishName;
+  if (language === "ar") return meta.arabicName || meta.turkishName;
+  return meta.turkishName;
+};
+
+/** Convenience: resolve by surah number + language. */
+export const getSurahDisplayName = (surahNumber, language = "tr") =>
+  getLocalizedSurahName(getSurahMeta(surahNumber), language) || String(surahNumber);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -18,7 +18,7 @@ import {
   ArabicText,
 } from "../../components/explore/ExploreUI";
 import { getVerseOfDay } from "../../services/dailyContentService";
-import { getSurahMeta } from "../../data/surahMeta";
+import { getSurahDisplayName } from "../../data/surahMeta";
 
 const goStack = (navigation, screen, params) =>
   navigation.navigate("MainStack", { screen, params });
@@ -31,7 +31,7 @@ const FeatureCard = ({ icon, title, subtitle, onPress }) => {
         <IconChip name={icon} />
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: fonts.ui, fontSize: 17, fontWeight: "700", color: c.ink }}>{title}</Text>
-          <Text style={{ fontFamily: fonts.ui, fontSize: 12, color: c.muted, marginTop: 2 }}>{subtitle}</Text>
+          <Text style={{ fontFamily: fonts.ui, fontSize: 14, color: c.muted, marginTop: 2 }}>{subtitle}</Text>
         </View>
         <Chevron />
       </View>
@@ -48,19 +48,10 @@ const ExploreScreen = () => {
 
   const [daily, setDaily] = useState({ status: "loading", verse: null, ref: null });
 
-  const loadDaily = useCallback(async () => {
-    setDaily((d) => ({ ...d, status: "loading" }));
-    try {
-      const { verse, ref } = await getVerseOfDay(contentLanguage, 0);
-      setDaily({ status: "ready", verse, ref });
-    } catch {
-      setDaily({ status: "error", verse: null, ref: null });
-    }
-  }, [contentLanguage]);
-
   useEffect(() => {
     let active = true;
     (async () => {
+      setDaily((d) => ({ ...d, status: "loading" }));
       try {
         const { verse, ref } = await getVerseOfDay(contentLanguage, 0);
         if (active) setDaily({ status: "ready", verse, ref });
@@ -74,7 +65,7 @@ const ExploreScreen = () => {
   }, [contentLanguage]);
 
   const dailyRefLabel = daily.ref
-    ? `${getSurahMeta(daily.ref.surahNumber)?.turkishName || daily.ref.surahNumber} · ${daily.ref.surahNumber}:${daily.ref.ayahNumber}`
+    ? `${getSurahDisplayName(daily.ref.surahNumber, contentLanguage)} · ${daily.ref.surahNumber}:${daily.ref.ayahNumber}`
     : "";
 
   return (
@@ -109,7 +100,7 @@ const ExploreScreen = () => {
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <Pill>{t("DAILY_VERSE")}</Pill>
             {dailyRefLabel ? (
-              <Text style={{ fontFamily: fonts.ui, fontSize: 12, color: c.muted }}>{dailyRefLabel}</Text>
+              <Text style={{ fontFamily: fonts.ui, fontSize: 14, color: c.muted }}>{dailyRefLabel}</Text>
             ) : null}
           </View>
           {daily.status === "ready" && daily.verse ? (
@@ -118,7 +109,7 @@ const ExploreScreen = () => {
                 {daily.verse.arabicText}
               </ArabicText>
               {daily.verse.translation ? (
-                <Text style={{ fontFamily: fonts.ui, fontSize: 14, color: c.inkSoft, lineHeight: 22, marginTop: 10 }}>
+                <Text style={{ fontFamily: fonts.ui, fontSize: 16, color: c.inkSoft, lineHeight: 24, marginTop: 10 }}>
                   {daily.verse.translation}
                 </Text>
               ) : null}
@@ -132,11 +123,11 @@ const ExploreScreen = () => {
               />
             </>
           ) : daily.status === "error" ? (
-            <Text style={{ fontFamily: fonts.ui, fontSize: 13, color: c.muted, marginTop: 12 }}>
+            <Text style={{ fontFamily: fonts.ui, fontSize: 15, color: c.muted, marginTop: 12 }}>
               {t("ERR_QURAN_UNAVAILABLE")}
             </Text>
           ) : (
-            <Text style={{ fontFamily: fonts.ui, fontSize: 13, color: c.muted, marginTop: 12 }}>{t("LOADING")}</Text>
+            <Text style={{ fontFamily: fonts.ui, fontSize: 15, color: c.muted, marginTop: 12 }}>{t("LOADING")}</Text>
           )}
         </Card>
 
@@ -164,7 +155,7 @@ const Pressable_OpenVerse = ({ onPress }) => {
   return (
     <Text
       onPress={onPress}
-      style={{ fontFamily: fonts.ui, fontSize: 13, fontWeight: "700", color: c.gold, marginTop: 12 }}
+      style={{ fontFamily: fonts.ui, fontSize: 15, fontWeight: "700", color: c.gold, marginTop: 12 }}
     >
       {t("OPEN_IN_QURAN")} ›
     </Text>
@@ -177,7 +168,7 @@ const ShortcutButton = ({ icon, label, onPress }) => {
     <Card onPress={onPress} style={{ flex: 1, alignItems: "center", paddingVertical: 14 }}>
       <View style={{ alignItems: "center", gap: 6 }}>
         <Feather name={icon} size={22} color={c.gold} />
-        <Text style={{ fontFamily: fonts.ui, fontSize: 12, fontWeight: "600", color: c.ink }}>{label}</Text>
+        <Text style={{ fontFamily: fonts.ui, fontSize: 14, fontWeight: "600", color: c.ink }}>{label}</Text>
       </View>
     </Card>
   );

@@ -15,6 +15,7 @@ import {
   ArabicText,
 } from "../../components/explore/ExploreUI";
 import { getSurahList } from "../../services/QuranService";
+import { getLocalizedSurahName } from "../../data/surahMeta";
 
 const normalize = (s) =>
   (s || "")
@@ -23,7 +24,7 @@ const normalize = (s) =>
     .replace(/[âa]/g, "a")
     .replace(/[û]/g, "u");
 
-const SurahRow = ({ item, onPress, isLast }) => {
+const SurahRow = ({ item, displayName, onPress, isLast }) => {
   const { c, fonts } = useExploreTheme();
   const { t } = useTranslation();
   const type = item.revelationType === "Medinan" ? t("MEDINAN") : t("MECCAN");
@@ -42,16 +43,16 @@ const SurahRow = ({ item, onPress, isLast }) => {
       })}
     >
       <View style={{ width: 38, height: 38, borderRadius: 11, backgroundColor: c.goldSoft, alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ fontFamily: fonts.ui, fontSize: 14, fontWeight: "700", color: c.goldInk }}>{item.number}</Text>
+        <Text style={{ fontFamily: fonts.ui, fontSize: 16, fontWeight: "700", color: c.goldInk }}>{item.number}</Text>
       </View>
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
-          <Text style={{ fontFamily: fonts.ui, fontSize: 15, fontWeight: "600", color: c.ink }}>{item.turkishName}</Text>
+          <Text style={{ fontFamily: fonts.ui, fontSize: 15, fontWeight: "600", color: c.ink, flex: 1, marginRight: 8 }}>{displayName}</Text>
           <ArabicText size={19} color={c.gold} style={{ opacity: 1, lineHeight: 26 }}>
             {item.arabicName}
           </ArabicText>
         </View>
-        <Text style={{ fontFamily: fonts.ui, fontSize: 12, color: c.muted, marginTop: 2 }}>
+        <Text style={{ fontFamily: fonts.ui, fontSize: 14, color: c.muted, marginTop: 2 }}>
           {t("AYAH_COUNT", { count: item.ayahCount })} · {type}
         </Text>
       </View>
@@ -64,22 +65,27 @@ const QuranSurahListScreen = () => {
   const { c, fonts } = useExploreTheme();
   const navigation = useNavigation();
   const lastRead = useSelector((s) => s.savedContent.lastRead);
+  const contentLanguage = useSelector((s) => s.contentPrefs.contentLanguage);
   const [query, setQuery] = useState("");
 
   const surahs = getSurahList();
   const filtered = useMemo(() => {
     const q = normalize(query.trim());
     if (!q) return surahs;
-    return surahs.filter(
-      (s) =>
+    return surahs.filter((s) => {
+      const localized = normalize(getLocalizedSurahName(s, contentLanguage));
+      return (
         normalize(s.turkishName).includes(q) ||
+        normalize(s.englishName).includes(q) ||
+        localized.includes(q) ||
         String(s.number) === query.trim() ||
         (s.arabicName || "").includes(query.trim())
-    );
-  }, [query, surahs]);
+      );
+    });
+  }, [query, surahs, contentLanguage]);
 
   const openSurah = (surahNumber, focusAyah) =>
-    navigation.navigate("MainStack", { screen: "QuranReader", params: { surahNumber, focusAyah } });
+    navigation.navigate("QuranReader", { surahNumber, focusAyah });
 
   const header = (
     <View>
@@ -94,14 +100,17 @@ const QuranSurahListScreen = () => {
             opacity: pressed ? 0.9 : 1,
           })}
         >
-          <Text style={{ fontFamily: fonts.ui, fontSize: 12, fontWeight: "600", letterSpacing: 0.5, color: c.onAcc, opacity: 0.85 }}>
+          <Text style={{ fontFamily: fonts.ui, fontSize: 14, fontWeight: "600", letterSpacing: 0.5, color: c.onAcc, opacity: 0.85 }}>
             {t("CONTINUE_READING")}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 6 }}>
             <Text style={{ fontFamily: fonts.display, fontSize: 24, fontWeight: "700", color: c.onAcc }}>
-              {lastRead.surahName}
+              {getLocalizedSurahName(
+                surahs.find((s) => s.number === lastRead.surahNumber),
+                contentLanguage
+              ) || lastRead.surahName}
             </Text>
-            <Text style={{ fontFamily: fonts.ui, fontSize: 13, fontWeight: "600", color: c.onAcc }}>
+            <Text style={{ fontFamily: fonts.ui, fontSize: 15, fontWeight: "600", color: c.onAcc }}>
               {t("AYAH_PROGRESS", { current: lastRead.ayahNumber, total: surahs.find((s) => s.number === lastRead.surahNumber)?.ayahCount || "" })}
             </Text>
           </View>
@@ -113,7 +122,7 @@ const QuranSurahListScreen = () => {
       </View>
 
       <View style={{ marginTop: 14 }}>
-        <Card onPress={() => navigation.navigate("MainStack", { screen: "SavedVerses" })} style={{ paddingVertical: 14 }}>
+        <Card onPress={() => navigation.navigate("SavedVerses")} style={{ paddingVertical: 14 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: c.goldSoft, alignItems: "center", justifyContent: "center" }}>
               <Feather name="bookmark" size={18} color={c.gold} />
@@ -138,14 +147,19 @@ const QuranSurahListScreen = () => {
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28, paddingTop: 8 }}
         renderItem={({ item, index }) => (
           <View style={index === 0 ? { backgroundColor: c.surface, borderColor: c.line, borderWidth: 1, borderTopLeftRadius: 18, borderTopRightRadius: 18, overflow: "hidden" } : { backgroundColor: c.surface, borderColor: c.line, borderLeftWidth: 1, borderRightWidth: 1 }}>
-            <SurahRow item={item} isLast={false} onPress={() => openSurah(item.number)} />
+            <SurahRow
+              item={item}
+              displayName={getLocalizedSurahName(item, contentLanguage)}
+              isLast={false}
+              onPress={() => openSurah(item.number)}
+            />
           </View>
         )}
         ListFooterComponent={
           filtered.length ? (
             <View style={{ height: 18, backgroundColor: c.surface, borderColor: c.line, borderWidth: 1, borderTopWidth: 0, borderBottomLeftRadius: 18, borderBottomRightRadius: 18 }} />
           ) : (
-            <Text style={{ fontFamily: fonts.ui, fontSize: 14, color: c.muted, textAlign: "center", paddingVertical: 30 }}>
+            <Text style={{ fontFamily: fonts.ui, fontSize: 16, color: c.muted, textAlign: "center", paddingVertical: 30 }}>
               {t("NO_SEARCH_RESULT")}
             </Text>
           )

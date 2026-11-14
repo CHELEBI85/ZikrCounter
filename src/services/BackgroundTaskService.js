@@ -1,70 +1,24 @@
-import * as Notifications from 'expo-notifications';
-import * as TaskManager from 'expo-task-manager';
-import { Platform } from 'react-native';
-import moment from 'moment-timezone';
-import PrayerNotificationService from './PrayerNotificationService';
+// Kept as a thin shim.
+//
+// This used to register a task via Notifications.registerTaskAsync, which only
+// fires for *incoming remote* notifications — the app sends none, so the task
+// never ran and the prayer schedule it was supposed to refresh silently
+// expired. It also posted a "tracking prayer times..." notification one second
+// after every launch, which told the user nothing.
+//
+// Prayer notifications are now repeating daily alarms (see
+// PrayerNotificationService), refreshed on each launch, so no background work
+// is needed. Only the cleanup entry point is still used.
 
-// Background task name
-const PRAYER_NOTIFICATION_TASK = 'PRAYER_NOTIFICATION_TASK';
-
-// Background task tanımı
-TaskManager.defineTask(PRAYER_NOTIFICATION_TASK, async ({ data, error }) => {
-  if (error) {
-    console.error('Background task error:', error);
-    return;
-  }
-
-  try {
-    console.log('🔄 Background task çalışıyor...');
-    
-    // Namaz vakitlerini kontrol et ve bildirimleri planla
-    await PrayerNotificationService.checkAndSchedulePrayerNotifications();
-    
-    console.log('✅ Background task tamamlandı');
-  } catch (error) {
-    console.error('❌ Background task hatası:', error);
-  }
-});
+import { cancelScheduledByPrefixes } from '../utils/notificationHelpers';
 
 class BackgroundTaskService {
-  // Background task'ı kaydet
-  static async registerBackgroundTask() {
+  /** Remove any leftovers from the old background-notification scheme. */
+  static async cleanupLegacyNotifications() {
     try {
-      if (Platform.OS === 'android') {
-        await Notifications.registerTaskAsync(PRAYER_NOTIFICATION_TASK);
-      }
+      await cancelScheduledByPrefixes(['background-start']);
     } catch (error) {
-      console.error('❌ Background task kayıt hatası:', error);
-    }
-  }
-
-  // Background task'ı başlat
-  static async startBackgroundTask() {
-    try {
-      if (Platform.OS === 'android') {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: 'ZikirMatik',
-            body: 'Namaz vakitleri takip ediliyor...',
-            data: { type: 'background_start' },
-          },
-          trigger: { type: 'timeInterval', seconds: 1 },
-        });
-        
-        console.log('✅ Background task başlatıldı');
-      }
-    } catch (error) {
-      console.error('❌ Background task başlatma hatası:', error);
-    }
-  }
-
-  // Background task'ı durdur
-  static async stopBackgroundTask() {
-    try {
-      await Notifications.cancelAllScheduledNotificationsAsync();
-      console.log('✅ Background task durduruldu');
-    } catch (error) {
-      console.error('❌ Background task durdurma hatası:', error);
+      console.log('Legacy background notification cleanup failed:', error?.message);
     }
   }
 }

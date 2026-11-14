@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
 import { useDispatch } from "react-redux";
-import { removeFavorite } from "../../redux/CounterSlice";
+import { removeFavorite, resumeZikr } from "../../redux/CounterSlice";
+import { useNavigation } from "@react-navigation/native";
 import { useExploreTheme } from "../../utils/Theme/ExploreTheme";
 import { Menu } from "react-native-paper";
 import EditModal from "../EditModal/EditModal";
@@ -15,6 +16,7 @@ const FavCard = ({ item, handleButtonClick }) => {
   const { t } = useTranslation();
   const { c, fonts } = useExploreTheme();
   const dispatch = useDispatch();
+  const navigation = useNavigation();
 
   const handleOnEditPress = () => {
     setModalVisible(true);
@@ -23,6 +25,14 @@ const FavCard = ({ item, handleButtonClick }) => {
   const toggleModal = () => setModalVisible((v) => !v);
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
+
+  // Load this entry back into the counter and go straight to it; saving later
+  // updates this same record rather than creating a near-duplicate.
+  const continueOnPress = () => {
+    setVisible(false);
+    dispatch(resumeZikr({ id: item.id, fav: item.fav, counter: item.counter }));
+    navigation.navigate("Home");
+  };
 
   const removeOnPress = () => {
     handleButtonClick("button1");
@@ -56,6 +66,11 @@ const FavCard = ({ item, handleButtonClick }) => {
             }
             contentStyle={{ borderRadius: 12, backgroundColor: c.surface }}
           >
+            <Menu.Item
+              leadingIcon={() => <MaterialIcons name="play-arrow" size={20} color={c.gold} />}
+              onPress={continueOnPress}
+              title={<Text style={{ color: c.ink, fontSize: 16, fontFamily: fonts.ui }}>{t("CONTINUE_ZIKR")}</Text>}
+            />
             <Menu.Item
               leadingIcon={() => <MaterialIcons name="mode-edit" size={20} color={c.gold} />}
               onPress={handleOnEditPress}
@@ -97,11 +112,11 @@ const styles = StyleSheet.create({
   },
   iconChip: { width: 50, height: 50, borderRadius: 15, alignItems: "center", justifyContent: "center" },
   bodyContainer: { flex: 1 },
-  textFav: { fontWeight: "700", fontSize: 16, marginBottom: 4, lineHeight: 22 },
-  textDate: { fontWeight: "400", fontSize: 13 },
+  textFav: { fontWeight: "700", fontSize: 16, marginBottom: 4, lineHeight: 24 },
+  textDate: { fontWeight: "400", fontSize: 15 },
   rightContainer: { flexDirection: "row", alignItems: "center", gap: 6 },
   counterContainer: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, alignItems: "center" },
-  counter: { fontWeight: "700", fontSize: 14 },
+  counter: { fontWeight: "700", fontSize: 16 },
   menuButton: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   modalOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "center", alignItems: "center" },
 });

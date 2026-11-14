@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { reset, setFavorite } from "../../redux/CounterSlice";
 import moment from "moment";
-import { getLocales } from "expo-localization";
 import { useTranslation } from "react-i18next";
 import { useExploreTheme } from "../../utils/Theme/ExploreTheme";
 
@@ -12,8 +11,7 @@ const CustomModal = ({ isVisible, onClose }) => {
   const { c, fonts } = useExploreTheme();
   const { value } = useSelector((e) => e.counter);
 
-  const date = getLocales()[0].languageTag.split("-")[0].toString() || "tr";
-  moment.locale(date);
+  // moment's locale is kept in sync with the UI language in src/i18n/i18n.js
   const now = moment().format("DD MMMM dddd");
 
   const [fav, setFav] = useState({
@@ -50,10 +48,10 @@ const CustomModal = ({ isVisible, onClose }) => {
           />
           <View style={styles.btnBox}>
             <Pressable onPress={onClose} style={[styles.ghostBtn, { borderColor: c.line }]}>
-              <Text style={{ color: c.inkSoft, fontFamily: fonts.ui, fontSize: 14, fontWeight: "600" }}>{t("CANCEL")}</Text>
+              <Text style={{ color: c.inkSoft, fontFamily: fonts.ui, fontSize: 16, fontWeight: "600" }}>{t("CANCEL")}</Text>
             </Pressable>
             <Pressable onPress={handleOnPress} style={[styles.primaryBtn, { backgroundColor: c.gold }]}>
-              <Text style={{ color: c.onAcc, fontFamily: fonts.ui, fontSize: 14, fontWeight: "700" }}>{t("SAVE")}</Text>
+              <Text style={{ color: c.onAcc, fontFamily: fonts.ui, fontSize: 16, fontWeight: "700" }}>{t("SAVE")}</Text>
             </Pressable>
           </View>
         </View>

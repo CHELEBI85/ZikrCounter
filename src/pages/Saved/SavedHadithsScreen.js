@@ -22,11 +22,11 @@ const SavedHadithsScreen = () => {
   const savedHadiths = useSelector((s) => s.savedContent.savedHadiths);
 
   const open = (h) =>
-    navigation.navigate("MainStack", { screen: "HadithDetail", params: { id: h.id } });
+    navigation.navigate("HadithDetail", { id: h.id });
 
   const renderItem = ({ item }) => (
     <View style={{ backgroundColor: c.card, borderWidth: 1, borderColor: c.line, borderRadius: 18, padding: 16, marginBottom: 12 }}>
-      <Text numberOfLines={4} style={{ fontFamily: fonts.ui, fontSize: 14, color: c.inkSoft, lineHeight: 23 }}>
+      <Text numberOfLines={4} style={{ fontFamily: fonts.ui, fontSize: 16, color: c.inkSoft, lineHeight: 24 }}>
         {item.translation || item.title}
       </Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 12 }}>
@@ -34,7 +34,7 @@ const SavedHadithsScreen = () => {
           <Pill key={cat.id}>{cat.name}</Pill>
         ))}
         {item.grade ? <Pill tone="outline">{item.grade}</Pill> : null}
-        {item.source ? <Text style={{ fontFamily: fonts.ui, fontSize: 12, color: c.muted }}>{item.source}</Text> : null}
+        {item.source ? <Text style={{ fontFamily: fonts.ui, fontSize: 14, color: c.muted }}>{item.source}</Text> : null}
       </View>
       <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
         <SoftButton flex label={t("OPEN_DETAIL")} onPress={() => open(item)} />

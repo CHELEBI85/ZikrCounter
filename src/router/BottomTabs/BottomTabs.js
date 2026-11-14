@@ -20,6 +20,7 @@ const BottomTabs = () => {
 
   return (
     <Tab.Navigator
+      initialRouteName="PrayerTimes"
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           if (route.name === 'Home') {
@@ -46,7 +47,7 @@ const BottomTabs = () => {
           paddingTop: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 13,
           fontFamily: fonts.ui,
           fontWeight: '600',
           marginTop: 4,
@@ -54,10 +55,10 @@ const BottomTabs = () => {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ title: t("TITLE") }} />
-      <Tab.Screen name="Favorites" component={FavoriteScreen} options={{ title: t("FAVORITES") }} />
+      <Tab.Screen name="PrayerTimes" component={PrayerTimes} options={{ title: t("TAB_PRAYER_TIMES") }} />
+      <Tab.Screen name="Favorites" component={FavoriteScreen} options={{ title: t("TAB_NOTEBOOK") }} />
       <Tab.Screen name="Explore" component={ExploreScreen} options={{ title: t("EXPLORE") }} />
-      <Tab.Screen name="PrayerTimes" component={PrayerTimes} options={{ title: t("PRAYER_TIMES") }} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ title: t("TAB_COUNTER") }} />
       <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: t("SETTINGS") }} />
     </Tab.Navigator>
   );

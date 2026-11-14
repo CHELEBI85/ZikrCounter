@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "@expo/vector-icons/Feather";
 import { useTranslation } from "react-i18next";
 import { useExploreTheme, RADIUS } from "../../utils/Theme/ExploreTheme";
+import { forwardChevron, backChevron } from "../../utils/rtl";
 
 // ---- Screen scaffold -------------------------------------------------------
 export const ExploreScreen = ({ children, edges = ["top"], style }) => {
@@ -33,14 +34,14 @@ export const ExploreHeader = ({ title, subtitle, onBack, right }) => {
   return (
     <View style={styles.headerRow}>
       {onBack ? (
-        <HeaderIconButton onPress={onBack} name="chevron-left" />
+        <HeaderIconButton onPress={onBack} name={backChevron()} />
       ) : null}
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: fonts.display, fontSize: onBack ? 24 : 28, fontWeight: "700", color: c.ink }}>
           {title}
         </Text>
         {subtitle ? (
-          <Text style={{ fontFamily: fonts.ui, fontSize: 13, color: c.muted, marginTop: 2 }}>
+          <Text style={{ fontFamily: fonts.ui, fontSize: 15, color: c.muted, marginTop: 2 }}>
             {subtitle}
           </Text>
         ) : null}
@@ -134,7 +135,7 @@ export const Pill = ({ children, tone = "soft" }) => {
         paddingHorizontal: 12,
       }}
     >
-      <Text style={{ fontFamily: fonts.ui, fontSize: 11, fontWeight: "700", color: soft ? c.goldInk : c.inkSoft }}>
+      <Text style={{ fontFamily: fonts.ui, fontSize: 13, fontWeight: "700", color: soft ? c.goldInk : c.inkSoft }}>
         {children}
       </Text>
     </View>
@@ -164,7 +165,7 @@ export const PrimaryButton = ({ label, icon, onPress, style, flex }) => {
       ]}
     >
       {icon ? <Feather name={icon} size={17} color={c.onAcc} /> : null}
-      <Text style={{ fontFamily: fonts.ui, fontSize: 14, fontWeight: "700", color: c.onAcc }}>{label}</Text>
+      <Text style={{ fontFamily: fonts.ui, fontSize: 16, fontWeight: "700", color: c.onAcc }}>{label}</Text>
     </Pressable>
   );
 };
@@ -191,7 +192,7 @@ export const SoftButton = ({ label, icon, onPress, style, flex }) => {
       ]}
     >
       {icon ? <Feather name={icon} size={15} color={c.goldInk} /> : null}
-      <Text style={{ fontFamily: fonts.ui, fontSize: 13, fontWeight: "700", color: c.goldInk }}>{label}</Text>
+      <Text style={{ fontFamily: fonts.ui, fontSize: 15, fontWeight: "700", color: c.goldInk }}>{label}</Text>
     </Pressable>
   );
 };
@@ -221,7 +222,7 @@ export const OutlineButton = ({ label, icon, onPress, style, flex }) => {
     >
       {icon ? <Feather name={icon} size={16} color={c.inkSoft} /> : null}
       {label ? (
-        <Text style={{ fontFamily: fonts.ui, fontSize: 13, fontWeight: "600", color: c.inkSoft }}>{label}</Text>
+        <Text style={{ fontFamily: fonts.ui, fontSize: 15, fontWeight: "600", color: c.inkSoft }}>{label}</Text>
       ) : null}
     </Pressable>
   );
@@ -233,7 +234,7 @@ export const SectionHeader = ({ children, style }) => {
   return (
     <Text
       style={[
-        { fontFamily: fonts.ui, fontSize: 12, fontWeight: "700", color: c.muted, letterSpacing: 1, marginTop: 20, marginBottom: 10, marginHorizontal: 4 },
+        { fontFamily: fonts.ui, fontSize: 14, fontWeight: "700", color: c.muted, letterSpacing: 1, marginTop: 20, marginBottom: 10, marginHorizontal: 4 },
         style,
       ]}
     >
@@ -265,7 +266,7 @@ export const SearchInput = ({ value, onChangeText, placeholder }) => {
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={c.muted}
-        style={{ flex: 1, fontFamily: fonts.ui, fontSize: 14, color: c.ink, padding: 0 }}
+        style={{ flex: 1, fontFamily: fonts.ui, fontSize: 16, color: c.ink, padding: 0 }}
         returnKeyType="search"
       />
     </View>
@@ -321,7 +322,7 @@ export const ArabicText = ({ children, size = 22, color, style }) => {
 // ---- Chevron affordance ----------------------------------------------------
 export const Chevron = () => {
   const { c } = useExploreTheme();
-  return <Feather name="chevron-right" size={18} color={c.muted} />;
+  return <Feather name={forwardChevron()} size={18} color={c.muted} />;
 };
 
 // ---- Offline banner --------------------------------------------------------
@@ -332,7 +333,7 @@ export const OfflineBanner = ({ visible }) => {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: c.goldSoft, paddingVertical: 8, paddingHorizontal: 16 }}>
       <Feather name="wifi-off" size={14} color={c.goldInk} />
-      <Text style={{ fontFamily: fonts.ui, fontSize: 12, color: c.goldInk, flex: 1 }}>{t("OFFLINE_CACHED")}</Text>
+      <Text style={{ fontFamily: fonts.ui, fontSize: 14, color: c.goldInk, flex: 1 }}>{t("OFFLINE_CACHED")}</Text>
     </View>
   );
 };
@@ -357,7 +358,7 @@ export const StateView = ({ status, message, onRetry }) => {
           </Text>
           {onRetry ? (
             <Pressable onPress={onRetry} style={{ marginTop: 16 }}>
-              <Text style={{ fontFamily: fonts.ui, fontSize: 14, fontWeight: "700", color: c.gold }}>{t("RETRY")}</Text>
+              <Text style={{ fontFamily: fonts.ui, fontSize: 16, fontWeight: "700", color: c.gold }}>{t("RETRY")}</Text>
             </Pressable>
           ) : null}
         </>

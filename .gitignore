@@ -49,3 +49,13 @@ GoogleService-Info.plist
 
 # OS
 Thumbs.db
+# Release imzalama / kimlik bilgileri (ASLA commit etme)
+credentials/
+credentials.json
+android/keystore.properties
+android/local.properties
+*.keystore
+!android/app/debug.keystore
+
+# Manuel build ciktilari
+android/app/build/outputs/

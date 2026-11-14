@@ -7,9 +7,9 @@
     "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./src/assets/splash.png",
+      "image": "./src/assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1a1a1a"
+      "backgroundColor": "#F7FBF7"
     },
     "ios": {
       "supportsTablet": true,
@@ -17,8 +17,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/icon.png",
-        "backgroundColor": "#1a1a1a"
+        "foregroundImage": "./src/assets/adaptive-icon.png",
+        "backgroundColor": "#1E9E76"
       },
       "versionCode": 11,
       "permissions": [
@@ -36,37 +36,46 @@
     },
     "plugins": [
       "expo-font",
-          [
-            "react-native-google-mobile-ads",
-            {
-              "androidAppId": "YOUR_ANDROID_APP_ID_HERE",
-              "iosAppId": "YOUR_IOS_APP_ID_HERE"
-            }
-          ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-9856483340336068~6907821252",
+          "iosAppId": "YOUR_IOS_APP_ID_HERE"
+        }
+      ],
       [
         "expo-build-properties",
         {
           "ios": {
             "useFrameworks": "static"
           },
-          "android": {
-          }
+          "android": {}
         }
       ],
       "expo-localization",
       [
         "expo-notifications",
         {
-          "icon": "./src/assets/icon.png",
-          "color": "#ffffff",
+          "icon": "./src/assets/notification-icon.png",
+          "color": "#1E9E76",
           "defaultChannel": "default"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./src/assets/splash-icon.png",
+          "imageWidth": 170,
+          "resizeMode": "contain",
+          "backgroundColor": "#F7FBF7"
         }
       ]
     ],
     "extra": {
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID_HERE"
+        "projectId": "0a846fe7-f176-4047-8640-e7bede7bf897"
       }
-    }
+    },
+    "owner": "owl_85"
   }
 }

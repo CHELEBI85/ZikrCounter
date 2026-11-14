@@ -14,10 +14,10 @@ const CustomAlert = ({ visible, onClose, onConfirm }) => {
           <Text style={[styles.message, { color: c.inkSoft, fontFamily: fonts.ui }]}>{t('CONFIRM_RESET')}</Text>
           <View style={styles.btnBox}>
             <Pressable onPress={onClose} style={[styles.ghostBtn, { borderColor: c.line }]}>
-              <Text style={{ color: c.inkSoft, fontFamily: fonts.ui, fontSize: 14, fontWeight: '600' }}>{t('NO')}</Text>
+              <Text style={{ color: c.inkSoft, fontFamily: fonts.ui, fontSize: 16, fontWeight: '600' }}>{t('NO')}</Text>
             </Pressable>
             <Pressable onPress={onConfirm} style={[styles.primaryBtn, { backgroundColor: c.gold }]}>
-              <Text style={{ color: c.onAcc, fontFamily: fonts.ui, fontSize: 14, fontWeight: '700' }}>{t('YES')}</Text>
+              <Text style={{ color: c.onAcc, fontFamily: fonts.ui, fontSize: 16, fontWeight: '700' }}>{t('YES')}</Text>
             </Pressable>
           </View>
         </View>

@@ -1,9 +1,9 @@
-import { FlatList, Text, View, StyleSheet } from "react-native";
+import { FlatList, Text, View, StyleSheet, Pressable } from "react-native";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
 import FavCard from "../../components/FavCard/FavCard";
-import "moment/locale/tr";
 import { useExploreTheme } from "../../utils/Theme/ExploreTheme";
 import InterstitialAd from "../../components/InterstitialAd/InterstitialAd";
 import { useTranslation } from "react-i18next";
@@ -13,6 +13,7 @@ import CustomHeader from "../../components/CustomHeader/CustomHeader";
 const FavoriteScreen = () => {
   const { t } = useTranslation();
   const { c, fonts } = useExploreTheme();
+  const navigation = useNavigation();
 
   const { favorite } = useSelector((state) => state.counter);
 
@@ -50,6 +51,21 @@ const FavoriteScreen = () => {
             <Feather name="bookmark" size={44} color={c.muted} />
             <Text style={[styles.emptyTitle, { color: c.ink, fontFamily: fonts.display }]}>{t("NO_DHIKR")}</Text>
             <Text style={[styles.emptySubtitle, { color: c.muted, fontFamily: fonts.ui }]}>{t("NO_DHIKR_DESC")}</Text>
+            {/* the empty state explained where dhikr comes from but gave no way
+                to get there — one tap to the counter */}
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => navigation.navigate("Home")}
+              style={({ pressed }) => [
+                styles.emptyCta,
+                { backgroundColor: c.gold, opacity: pressed ? 0.85 : 1 },
+              ]}
+            >
+              <Feather name="plus-circle" size={17} color={c.onAcc} />
+              <Text style={{ fontFamily: fonts.ui, fontSize: 15, fontWeight: "700", color: c.onAcc }}>
+                {t("GO_TO_COUNTER")}
+              </Text>
+            </Pressable>
           </View>
         ) : (
           <FlatList
@@ -89,5 +105,9 @@ const styles = StyleSheet.create({
   emptyContainer: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 },
   emptyTitle: { fontSize: 22, fontWeight: "700", textAlign: "center", marginTop: 16, marginBottom: 8 },
   emptySubtitle: { fontSize: 15, fontWeight: "400", textAlign: "center", lineHeight: 22 },
-  bottomContainer: { width: "100%", height: 80 },
+  emptyCta: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+    marginTop: 24, paddingHorizontal: 22, paddingVertical: 13, borderRadius: 999,
+  },
+  bottomContainer: { width: "100%", minHeight: 60 },
 });

@@ -1,11 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useExploreTheme } from '../../utils/Theme/ExploreTheme';
 
 const CustomHeader = ({ title, subtitle, right }) => {
   const { c, fonts } = useExploreTheme();
+  // The status bar is translucent, so the header has to clear it itself —
+  // without this the title sits underneath the clock.
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
       <View style={{ flex: 1 }}>
         <Text style={[styles.headerTitle, { color: c.ink, fontFamily: fonts.display }]}>{title}</Text>
         {subtitle ? (
@@ -22,7 +27,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 30,
     paddingBottom: 16,
   },
   headerTitle: {
@@ -31,7 +35,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '400',
   },
 });

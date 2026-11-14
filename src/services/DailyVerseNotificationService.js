@@ -13,7 +13,8 @@ import * as Notifications from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "../i18n/i18n";
 import { pickDailyVerseRefs, getVerseOfDay } from "./dailyContentService";
-import { getSurahMeta } from "../data/surahMeta";
+import { getSurahDisplayName } from "../data/surahMeta";
+import { CHANNELS } from "../utils/notificationChannels";
 
 const CACHE_KEY = "@zc/quran/dailyNotif";
 const IDENTIFIERS = ["daily-verse-morning", "daily-verse-evening"];
@@ -23,9 +24,9 @@ const TIMES = [
 ];
 
 /** Build a short notification body from a verified verse (no rewriting). */
-const buildBody = (verse, ref) => {
-  const meta = getSurahMeta(ref.surahNumber);
-  const refLabel = `${meta?.turkishName || ref.surahNumber} ${ref.surahNumber}:${ref.ayahNumber}`;
+const buildBody = (verse, ref, language) => {
+  const name = getSurahDisplayName(ref.surahNumber, language);
+  const refLabel = `${name} ${ref.surahNumber}:${ref.ayahNumber}`;
   const text = verse.translation || verse.arabicText || "";
   return { body: `${text}\n— ${refLabel}`, refLabel };
 };
@@ -58,13 +59,13 @@ export const scheduleDailyVerseNotifications = async (language) => {
       } catch {
         continue; // skip this slot if content can't be verified/fetched
       }
-      const { body } = buildBody(verse, ref);
+      const { body } = buildBody(verse, ref, language);
       cachePayload.push({ slot, surahNumber: ref.surahNumber, ayahNumber: ref.ayahNumber, verse });
 
       await Notifications.scheduleNotificationAsync({
         identifier: IDENTIFIERS[slot],
         content: {
-          title: i18n.t("DAILY_VERSE"),
+          title: i18n.t("DAILY_VERSE_NOTIF_TITLE"),
           body,
           sound: "default",
           data: {
@@ -78,7 +79,7 @@ export const scheduleDailyVerseNotifications = async (language) => {
           type: "daily",
           hour: TIMES[slot].hour,
           minute: TIMES[slot].minute,
-          repeats: true,
+          channelId: CHANNELS.verse,
         },
       });
     }

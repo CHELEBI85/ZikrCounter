@@ -11,6 +11,17 @@ export const fetchStorage = createAsyncThunk(
   }
 );
 
+export const fetchActiveZikr = createAsyncThunk(
+  "storage/fetchActiveZikr",
+  async () => {
+    const [name, resumedId] = await Promise.all([
+      AsyncStorage.getItem("activeZikr"),
+      AsyncStorage.getItem("resumedFavoriteId"),
+    ]);
+    return { activeZikr: name || "", resumedFavoriteId: resumedId ? JSON.parse(resumedId) : null };
+  }
+);
+
 export const fetchFavorites = createAsyncThunk(
   "favorites/fetchFavorites",
   async () => {
@@ -64,6 +75,12 @@ export const fetchPrayerTimes = createAsyncThunk(
 
 const initialState = {
   value: 0,
+  // Name of the dhikr currently being counted. Empty means the counter has not
+  // been started yet: the user names it first, and that name is what gets saved.
+  activeZikr: "",
+  // Set when the counter was resumed from a notebook entry: saving then updates
+  // that entry instead of filing a duplicate.
+  resumedFavoriteId: null,
   favorite: [],
   loading: false,
   error: null,
@@ -87,7 +104,26 @@ export const counterSlice = createSlice({
     },
     reset: (state) => {
       state.value = 0;
+      state.activeZikr = "";
+      state.resumedFavoriteId = null;
       AsyncStorage.removeItem("value");
+      AsyncStorage.removeItem("activeZikr");
+      AsyncStorage.removeItem("resumedFavoriteId");
+    },
+    /** Load a saved dhikr back into the counter to keep counting it. */
+    resumeZikr: (state, action) => {
+      const { id, fav, counter } = action.payload || {};
+      state.activeZikr = fav || "";
+      state.value = Number(counter) || 0;
+      state.resumedFavoriteId = id ?? null;
+      AsyncStorage.setItem("value", JSON.stringify(state.value));
+      AsyncStorage.setItem("activeZikr", state.activeZikr);
+      AsyncStorage.setItem("resumedFavoriteId", JSON.stringify(state.resumedFavoriteId));
+    },
+    setActiveZikr: (state, action) => {
+      state.activeZikr = (action.payload || "").trim();
+      if (state.activeZikr) AsyncStorage.setItem("activeZikr", state.activeZikr);
+      else AsyncStorage.removeItem("activeZikr");
     },
     setFavorite: (state, action) => {
       state.favorite.push(action.payload);
@@ -138,6 +174,10 @@ export const counterSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchActiveZikr.fulfilled, (state, action) => {
+        state.activeZikr = action.payload?.activeZikr || "";
+        state.resumedFavoriteId = action.payload?.resumedFavoriteId ?? null;
+      })
       .addCase(fetchStorage.pending, (state) => {
         state.loading = true;
       })
@@ -189,6 +229,8 @@ export const counterSlice = createSlice({
 export const {
   increment,
   reset,
+  setActiveZikr,
+  resumeZikr,
   setFavorite,
   removeFavorite,
   changeGradientColor,

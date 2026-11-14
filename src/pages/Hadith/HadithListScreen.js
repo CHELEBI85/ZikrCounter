@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { View, Text, FlatList, Pressable, ScrollView, ActivityIndicator } from "react-native";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { useNavigation } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
@@ -18,7 +18,6 @@ import {
 import {
   getHadithCategories,
   getHadithList,
-  getHadithDetail,
   filterHadithItems,
 } from "../../services/HadithService";
 import { getHadithOfDay } from "../../services/dailyContentService";
@@ -123,7 +122,7 @@ const HadithListScreen = () => {
   const visibleItems = useMemo(() => filterHadithItems(items, query), [items, query]);
 
   const openDetail = (id) =>
-    navigation.navigate("MainStack", { screen: "HadithDetail", params: { id, categories } });
+    navigation.navigate("HadithDetail", { id, categories });
 
   const header = (
     <View>
@@ -133,12 +132,12 @@ const HadithListScreen = () => {
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <Pill>{t("DAILY_HADITH")}</Pill>
             {(daily.source || daily.grade) ? (
-              <Text style={{ fontFamily: fonts.ui, fontSize: 12, color: c.muted }}>
+              <Text style={{ fontFamily: fonts.ui, fontSize: 14, color: c.muted }}>
                 {[daily.source, daily.grade].filter(Boolean).join(" · ")}
               </Text>
             ) : null}
           </View>
-          <Text numberOfLines={3} style={{ fontFamily: fonts.ui, fontSize: 14, color: c.inkSoft, lineHeight: 24, marginTop: 12 }}>
+          <Text numberOfLines={3} style={{ fontFamily: fonts.ui, fontSize: 16, color: c.inkSoft, lineHeight: 24, marginTop: 12 }}>
             {daily.translation || daily.title}
           </Text>
         </Card>
@@ -162,7 +161,7 @@ const HadithListScreen = () => {
                   paddingHorizontal: 14,
                 }}
               >
-                <Text style={{ fontFamily: fonts.ui, fontSize: 13, fontWeight: "600", color: on ? c.onAcc : c.inkSoft }}>
+                <Text style={{ fontFamily: fonts.ui, fontSize: 15, fontWeight: "600", color: on ? c.onAcc : c.inkSoft }}>
                   {cat.name}
                 </Text>
               </Pressable>
@@ -176,7 +175,7 @@ const HadithListScreen = () => {
       </View>
 
       <View style={{ marginTop: 14 }}>
-        <Card onPress={() => navigation.navigate("MainStack", { screen: "SavedHadiths" })} style={{ paddingVertical: 14 }}>
+        <Card onPress={() => navigation.navigate("SavedHadiths")} style={{ paddingVertical: 14 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: c.goldSoft, alignItems: "center", justifyContent: "center" }}>
               <Feather name="bookmark" size={18} color={c.gold} />
@@ -193,7 +192,7 @@ const HadithListScreen = () => {
 
   const renderItem = ({ item }) => (
     <Card surface onPress={() => openDetail(item.id)} style={{ marginBottom: 12 }}>
-      <Text style={{ fontFamily: fonts.ui, fontSize: 14, color: c.inkSoft, lineHeight: 23 }} numberOfLines={4}>
+      <Text style={{ fontFamily: fonts.ui, fontSize: 16, color: c.inkSoft, lineHeight: 24 }} numberOfLines={4}>
         {item.title}
       </Text>
       <View style={{ flexDirection: "row", alignItems: "center", marginTop: 12 }}>
@@ -231,11 +230,11 @@ const HadithListScreen = () => {
             loadingMore ? (
               <ActivityIndicator color={c.gold} style={{ marginVertical: 16 }} />
             ) : visibleItems.length === 0 ? (
-              <Text style={{ fontFamily: fonts.ui, fontSize: 14, color: c.muted, textAlign: "center", paddingVertical: 24 }}>
+              <Text style={{ fontFamily: fonts.ui, fontSize: 16, color: c.muted, textAlign: "center", paddingVertical: 24 }}>
                 {query.trim() ? t("NO_SEARCH_RESULT") : t("END_OF_LIST")}
               </Text>
             ) : page >= lastPage && !query.trim() ? (
-              <Text style={{ fontFamily: fonts.ui, fontSize: 13, color: c.muted, textAlign: "center", paddingVertical: 18 }}>
+              <Text style={{ fontFamily: fonts.ui, fontSize: 15, color: c.muted, textAlign: "center", paddingVertical: 18 }}>
                 {t("END_OF_LIST")}
               </Text>
             ) : null

@@ -23,7 +23,7 @@ const LabeledBlock = ({ label, children }) => {
   const { c, fonts } = useExploreTheme();
   return (
     <View style={{ backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, borderRadius: 18, padding: 16 }}>
-      <Text style={{ fontFamily: fonts.ui, fontSize: 12, fontWeight: "700", color: c.muted, letterSpacing: 0.5, marginBottom: 8 }}>
+      <Text style={{ fontFamily: fonts.ui, fontSize: 14, fontWeight: "700", color: c.muted, letterSpacing: 0.5, marginBottom: 8 }}>
         {label}
       </Text>
       {children}
@@ -83,7 +83,7 @@ const HadithDetailScreen = () => {
         subtitle={h?.source || undefined}
         onBack={() => navigation.goBack()}
         right={
-          <HeaderIconButton name="bookmark" accent={!isSaved} color={isSaved ? c.gold : undefined} onPress={toggleSave} />
+          <HeaderIconButton name="bookmark" accent={isSaved} color={isSaved ? c.gold : undefined} onPress={toggleSave} />
         }
       />
       <OfflineBanner visible={state.status === "ready" && state.fromCache} />
@@ -105,7 +105,7 @@ const HadithDetailScreen = () => {
             ))}
             {h.grade ? <Pill tone="outline">{`${t("GRADE_LABEL")}: ${h.grade}`}</Pill> : null}
             {h.source ? (
-              <Text style={{ fontFamily: fonts.ui, fontSize: 12, color: c.muted }}>{`${t("SOURCE_LABEL")}: ${h.source}`}</Text>
+              <Text style={{ fontFamily: fonts.ui, fontSize: 14, color: c.muted }}>{`${t("SOURCE_LABEL")}: ${h.source}`}</Text>
             ) : null}
           </View>
 

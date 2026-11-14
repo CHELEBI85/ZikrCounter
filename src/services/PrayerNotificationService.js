@@ -1,6 +1,21 @@
 import * as Notifications from 'expo-notifications';
 import moment from 'moment';
 import 'moment-timezone';
+import i18n from '../i18n/i18n';
+import { cancelScheduledByPrefixes } from '../utils/notificationHelpers';
+import { CHANNELS } from '../utils/notificationChannels';
+
+const PRAYER_PREFIXES = ['prayer_reminder_', 'prayer_time_'];
+const REMINDER_MINUTES = 10;
+const SOURCE_TZ = 'Europe/Istanbul';
+
+const PRAYERS = [
+  { key: 'Fajr', label: 'FAJR' },
+  { key: 'Dhuhr', label: 'DHUHR' },
+  { key: 'Asr', label: 'ASR' },
+  { key: 'Maghrib', label: 'MAGHRIB' },
+  { key: 'Isha', label: 'ISHA' },
+];
 
 class PrayerNotificationService {
   static async requestPermissions() {
@@ -8,74 +23,67 @@ class PrayerNotificationService {
     return status === 'granted';
   }
 
+  /**
+   * Schedule the day's prayer notifications as *repeating daily* alarms.
+   *
+   * They used to be one-off `date` triggers for today and tomorrow, refreshed
+   * by a background task that never actually ran (see BackgroundTaskService),
+   * so prayer notifications went silent about two days after the last time the
+   * app was opened. A daily trigger keeps firing indefinitely, and because this
+   * runs on every launch the times stay current — the same accuracy the old
+   * code already assumed when it reused today's timings for tomorrow.
+   *
+   * @param {{timings: Record<string,string>}} prayerTimes Aladhan payload
+   * @param {string} cityName
+   */
   static async schedulePrayerNotifications(prayerTimes, cityName = 'İstanbul') {
     try {
-      // Önceki bildirimleri temizle
-      await Notifications.cancelAllScheduledNotificationsAsync();
+      // Only clear previous prayer notifications — leave zikr / daily-verse intact.
+      await cancelScheduledByPrefixes(PRAYER_PREFIXES);
 
-      if (!prayerTimes || !prayerTimes.timings) {
-        return;
+      if (!prayerTimes?.timings) return;
+
+      const today = moment().tz(SOURCE_TZ).format('YYYY-MM-DD');
+
+      for (const prayer of PRAYERS) {
+        const time = prayerTimes.timings[prayer.key];
+        if (!time) continue;
+
+        // Timings are published for Istanbul; convert to the device's own zone
+        // so a traveller still gets them at the right wall-clock moment.
+        const at = moment.tz(`${today} ${time}`, SOURCE_TZ).local();
+        const reminderAt = at.clone().subtract(REMINDER_MINUTES, 'minutes');
+        const prayerName = i18n.t(prayer.label);
+
+        await this.scheduleDaily({
+          id: `prayer_reminder_${prayer.key}`,
+          hour: reminderAt.hour(),
+          minute: reminderAt.minute(),
+          title: i18n.t('NOTIF_PRAYER_SOON_TITLE'),
+          body: i18n.t('NOTIF_PRAYER_SOON_BODY', {
+            prayer: prayerName,
+            minutes: REMINDER_MINUTES,
+            city: cityName,
+          }),
+          data: { type: 'prayer_reminder', prayer: prayer.key, city: cityName },
+        });
+
+        await this.scheduleDaily({
+          id: `prayer_time_${prayer.key}`,
+          hour: at.hour(),
+          minute: at.minute(),
+          title: i18n.t('NOTIF_PRAYER_NOW_TITLE'),
+          body: i18n.t('NOTIF_PRAYER_NOW_BODY', { prayer: prayerName, city: cityName }),
+          data: { type: 'prayer_time', prayer: prayer.key, city: cityName },
+        });
       }
-
-      const prayers = [
-        { key: 'Fajr', name: 'Sabah', time: prayerTimes.timings.Fajr },
-        { key: 'Dhuhr', name: 'Öğle', time: prayerTimes.timings.Dhuhr },
-        { key: 'Asr', name: 'İkindi', time: prayerTimes.timings.Asr },
-        { key: 'Maghrib', name: 'Akşam', time: prayerTimes.timings.Maghrib },
-        { key: 'Isha', name: 'Yatsı', time: prayerTimes.timings.Isha },
-      ];
-
-      const today = moment().tz('Europe/Istanbul').format('YYYY-MM-DD');
-      const tomorrow = moment().tz('Europe/Istanbul').add(1, 'day').format('YYYY-MM-DD');
-
-      // Bugün ve yarın için bildirimleri planla
-      for (const day of [today, tomorrow]) {
-        for (const prayer of prayers) {
-          const prayerTime = moment.tz(`${day} ${prayer.time}`, 'Europe/Istanbul');
-          const now = moment().tz('Europe/Istanbul');
-
-          // Sadece gelecekteki namazlar için bildirim planla
-          if (prayerTime.isAfter(now)) {
-            // 10 dakika önce bildirimi
-            const reminderTime = prayerTime.clone().subtract(10, 'minutes');
-            if (reminderTime.isAfter(now)) {
-              await this.scheduleNotification({
-                id: `prayer_reminder_${prayer.key}_${day}`,
-                title: 'Namaz Vakti Yaklaşıyor',
-                body: `${prayer.name} namazına 10 dakika kaldı (${cityName})`,
-                trigger: { type: 'date', date: reminderTime.toDate() },
-                data: {
-                  type: 'prayer_reminder',
-                  prayer: prayer.key,
-                  city: cityName,
-                },
-              });
-            }
-
-            // Namaz vaktinde bildirimi
-            await this.scheduleNotification({
-              id: `prayer_time_${prayer.key}_${day}`,
-              title: 'Namaz Vakti',
-              body: `${prayer.name} namazı vakti geldi (${cityName})`,
-              trigger: { type: 'date', date: prayerTime.toDate() },
-              data: {
-                type: 'prayer_time',
-                prayer: prayer.key,
-                city: cityName,
-              },
-            });
-          }
-        }
-      }
-
     } catch (error) {
-      console.error('Error scheduling prayer notifications:', error);
+      console.log('Error scheduling prayer notifications:', error?.message);
     }
   }
 
-  static async scheduleNotification(notification) {
+  static async scheduleDaily({ id, hour, minute, title, body, data }) {
     try {
-      const { id, title, body, trigger, data } = notification;
       await Notifications.scheduleNotificationAsync({
         identifier: id,
         content: {
@@ -86,44 +94,18 @@ class PrayerNotificationService {
           priority: 'high',
           categoryIdentifier: 'prayer-notification',
         },
-        trigger,
+        trigger: { type: 'daily', hour, minute, channelId: CHANNELS.prayer },
       });
     } catch (error) {
-      console.error('Error scheduling notification:', error);
+      console.log('Error scheduling notification:', error?.message);
     }
   }
 
   static async cancelAllNotifications() {
     try {
-      await Notifications.cancelAllScheduledNotificationsAsync();
+      await cancelScheduledByPrefixes(PRAYER_PREFIXES);
     } catch (error) {
-      console.error('Error cancelling notifications:', error);
-    }
-  }
-
-  // Background task için namaz vakitlerini kontrol et
-  static async checkAndSchedulePrayerNotifications() {
-    try {
-      // Mevcut şehir bilgisini al (AsyncStorage'dan)
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      const selectedCityData = await AsyncStorage.getItem('selectedCity');
-      
-      if (selectedCityData) {
-        const selectedCity = JSON.parse(selectedCityData);
-        
-        // Namaz vakitlerini API'den al
-        const response = await fetch(
-          `https://api.aladhan.com/v1/timingsByCity?city=${selectedCity.name}&country=Turkey&method=2`
-        );
-        const data = await response.json();
-        
-        if (data.data) {
-          await this.schedulePrayerNotifications(data.data, selectedCity.name);
-          console.log('✅ Background namaz vakitleri güncellendi');
-        }
-      }
-    } catch (error) {
-      console.error('❌ Background namaz vakitleri hatası:', error);
+      console.log('Error cancelling notifications:', error?.message);
     }
   }
 
@@ -131,7 +113,7 @@ class PrayerNotificationService {
     try {
       return await Notifications.getAllScheduledNotificationsAsync();
     } catch (error) {
-      console.error('Error getting scheduled notifications:', error);
+      console.log('Error getting scheduled notifications:', error?.message);
       return [];
     }
   }

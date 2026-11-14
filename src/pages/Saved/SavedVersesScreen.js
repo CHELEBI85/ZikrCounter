@@ -13,7 +13,7 @@ import {
   ArabicText,
   StateView,
 } from "../../components/explore/ExploreUI";
-import { getSurahMeta } from "../../data/surahMeta";
+import { getSurahMeta, getLocalizedSurahName } from "../../data/surahMeta";
 import { removeVerseThunk } from "../../redux/SavedContentSlice";
 
 const SavedVersesScreen = () => {
@@ -22,18 +22,20 @@ const SavedVersesScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const savedVerses = useSelector((s) => s.savedContent.savedVerses);
+  const contentLanguage = useSelector((s) => s.contentPrefs.contentLanguage);
 
   const open = (v) =>
-    navigation.navigate("MainStack", { screen: "QuranReader", params: { surahNumber: v.surahNumber, focusAyah: v.ayahNumber } });
+    navigation.navigate("QuranReader", { surahNumber: v.surahNumber, focusAyah: v.ayahNumber });
 
   const renderItem = ({ item }) => {
     const meta = getSurahMeta(item.surahNumber);
     const type = meta?.revelationType === "Medinan" ? t("MEDINAN") : t("MECCAN");
-    const ref = `${item.surahName || meta?.turkishName || item.surahNumber} ${item.surahNumber}:${item.ayahNumber}`;
+    const name = getLocalizedSurahName(meta, contentLanguage) || item.surahName || item.surahNumber;
+    const ref = `${name} ${item.surahNumber}:${item.ayahNumber}`;
     return (
       <View style={{ backgroundColor: c.card, borderWidth: 1, borderColor: c.line, borderRadius: 18, padding: 16, marginBottom: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <Text style={{ fontFamily: fonts.ui, fontSize: 14, fontWeight: "700", color: c.ink }}>{ref}</Text>
+          <Text style={{ fontFamily: fonts.ui, fontSize: 16, fontWeight: "700", color: c.ink }}>{ref}</Text>
           <Pill>{type}</Pill>
         </View>
         {item.arabicText ? (
@@ -42,7 +44,7 @@ const SavedVersesScreen = () => {
           </ArabicText>
         ) : null}
         {item.translation ? (
-          <Text style={{ fontFamily: fonts.ui, fontSize: 13, color: c.inkSoft, lineHeight: 22, marginTop: 8 }}>
+          <Text style={{ fontFamily: fonts.ui, fontSize: 15, color: c.inkSoft, lineHeight: 22, marginTop: 8 }}>
             {item.translation}
           </Text>
         ) : null}
